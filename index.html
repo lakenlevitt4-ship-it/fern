@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern Web</title>
+  <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #06120e;
+      --bg-secondary: #0b1f18;
+      --bg-glass: rgba(13, 36, 28, 0.72);
+      --border-color: rgba(16, 185, 129, 0.18);
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --text-main: #ecfdf5;
+      --text-muted: #86efac;
+      --text-dim: #6ee7b780;
+    }
+
+    /* Themes */
+    [data-theme="obsidian"] {
+      --bg-primary: #09090b;
+      --bg-secondary: #121216;
+      --bg-glass: rgba(24, 24, 29, 0.78);
+      --border-color: rgba(161, 161, 170, 0.18);
+      --accent: #a855f7;
+      --accent-hover: #9333ea;
+      --accent-glow: rgba(168, 85, 247, 0.25);
+      --text-main: #fafafa;
+      --text-muted: #d4d4d8;
+      --text-dim: #71717a;
+    }
+
+    [data-theme="cyber"] {
+      --bg-primary: #040b14;
+      --bg-secondary: #091728;
+      --bg-glass: rgba(10, 28, 48, 0.78);
+      --border-color: rgba(6, 182, 212, 0.22);
+      --accent: #06b6d4;
+      --accent-hover: #0891b2;
+      --accent-glow: rgba(6, 182, 212, 0.28);
+      --text-main: #ecfeff;
+      --text-muted: #67e8f9;
+      --text-dim: #22d3ee70;
+    }
+
+    [data-theme="amber"] {
+      --bg-primary: #140b06;
+      --bg-secondary: #21120a;
+      --bg-glass: rgba(38, 21, 12, 0.78);
+      --border-color: rgba(245, 158, 11, 0.22);
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-glow: rgba(245, 158, 11, 0.25);
+      --text-main: #fffbeb;
+      --text-muted: #fcd34d;
+      --text-dim: #fbbf2470;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      margin: 0;
+      overflow: hidden;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    .glass-panel {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+    }
+
+    .accent-bg {
+      background-color: var(--accent);
+    }
+    .accent-bg:hover {
+      background-color: var(--accent-hover);
+    }
+    .accent-text {
+      color: var(--accent);
+    }
+    .accent-border {
+      border-color: var(--border-color);
+    }
+    .accent-glow {
+      box-shadow: 0 0 28px var(--accent-glow);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 9999px;
+    }
+
+    /* Ambient botanical mesh background */
+    .ambient-bg {
+      background:
+        radial-gradient(circle at 15% 20%, var(--accent-glow) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, var(--accent-glow) 0%, transparent 45%),
+        var(--bg-primary);
+    }
+
+    .tab-item {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tab-item.active {
+      background: var(--bg-secondary);
+      border-color: var(--border-color);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-view {
+      animation: fadeSlideUp 0.25s ease forwards;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col select-none">
+
+  <!-- PANIC MODE OVERLAY (Triggered by Panic Key) -->
+  <div id="panic-screen" class="hidden fixed inset-0 z-[100] bg-white text-slate-800 flex flex-col select-text">
+    <div class="border-b border-slate-200 px-6 py-3 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-blue-600 text-white flex items-center justify-center font-bold">W</div>
+        <div>
+          <h1 class="text-sm font-semibold text-slate-900">AP Biology - Cellular Respiration Notes (Unit 3)</h1>
+          <p class="text-xs text-slate-500">Saved to Drive • Last edited 2 mins ago</p>
+        </div>
+      </div>
+      <button onclick="togglePanicMode(false)" class="text-xs px-3 py-1.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium transition">
+        Return to Browser
+      </button>
+    </div>
+    <div class="max-w-3xl mx-auto w-full p-8 overflow-y-auto space-y-4 text-sm leading-relaxed">
+      <h2 class="text-xl font-bold text-slate-900">1. Overview of Cellular Respiration</h2>
+      <p>Cellular respiration is the metabolic pathway that breaks down glucose and produces ATP. The stages of cellular respiration include glycolysis, pyruvate oxidation, the citric acid (Krebs) cycle, and oxidative phosphorylation.</p>
+      <ul class="list-disc pl-6 space-y-2">
+        <li><strong>Glycolysis:</strong> Occurs in the cytosol; splits 1 glucose (6C) into 2 pyruvate (3C) molecules. Net gain: 2 ATP and 2 NADH.</li>
+        <li><strong>Pyruvate Oxidation:</strong> Occurs in the mitochondrial matrix; converts pyruvate into Acetyl-CoA, releasing CO₂ and generating NADH.</li>
+        <li><strong>Citric Acid Cycle:</strong> Completes breakdown of glucose derivatives into CO₂, producing 2 ATP, 6 NADH, and 2 FADH₂ per glucose.</li>
+        <li><strong>Oxidative Phosphorylation:</strong> Electron transport chain (ETC) and chemiosmosis across the inner mitochondrial membrane yield ~26–28 ATP.</li>
+      </ul>
+      <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 text-xs">
+        <strong>Study Reminder:</strong> Review practice FRQ #4 before Friday's quiz.
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BROWSER CHROME -->
+  <header class="w-full flex flex-col border-b accent-border z-20" style="background: var(--bg-primary);">
+    <!-- Tab Strip -->
+    <div class="flex items-center gap-1.5 px-2.5 pt-2 pb-1 overflow-x-auto">
+      <!-- Brand Pill -->
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl mr-1 shrink-0" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+        <svg class="w-4 h-4 accent-text" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z"/>
+        </svg>
+        <span class="text-xs font-bold tracking-wide">FERN</span>
+      </div>
+
+      <!-- Dynamic Tabs Container -->
+      <div id="tabs-container" class="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto"></div>
+
+      <!-- New Tab Button -->
+      <button onclick="createTab()" title="New Tab" class="p-2 rounded-xl hover:bg-white/10 transition shrink-0 text-sm flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Navigation & Omnibox Toolbar -->
+    <div class="flex items-center gap-2 px-3 py-2" style="background: var(--bg-secondary);">
+      <!-- Nav Buttons -->
+      <div class="flex items-center gap-1 shrink-0">
+        <button id="btn-back" onclick="goBack()" title="Back" class="p-2 rounded-xl hover:bg-white/10 disabled:opacity-30 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button id="btn-forward" onclick="goForward()" title="Forward" class="p-2 rounded-xl hover:bg-white/10 disabled:opacity-30 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button onclick="reloadTab()" title="Reload" class="p-2 rounded-xl hover:bg-white/10 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        <button onclick="goHome()" title="Home" class="p-2 rounded-xl hover:bg-white/10 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </button>
+      </div>
+
+      <!-- URL / Search Omnibox -->
+      <form onsubmit="handleOmniboxSubmit(event)" class="flex-1 flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border accent-border transition focus-within:ring-2" style="background: var(--bg-primary); --tw-ring-color: var(--accent);">
+        <span class="accent-text shrink-0" title="Fern Shield Active">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </span>
+        <input
+          id="omnibox-input"
+          type="text"
+          autocomplete="off"
+          placeholder="Search with DuckDuckGo or enter a URL (e.g. wikipedia.org, fern://notes)..."
+          class="w-full bg-transparent text-xs sm:text-sm outline-none placeholder:opacity-50"
+        />
+        <span id="cloak-badge" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/10 shrink-0">
+          Cloak: <strong id="cloak-status-text">Off</strong>
+        </span>
+      </form>
+
+      <!-- Right Controls: Panic & Settings -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="togglePanicMode(true)" title="Trigger Panic Screen" class="p-2 rounded-xl hover:bg-rose-500/20 text-rose-400 transition flex items-center gap-1 text-xs font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="hidden md:inline">Panic</span>
+        </button>
+        <button onclick="toggleSettingsModal(true)" title="Settings & Tab Cloaker" class="p-2 rounded-xl hover:bg-white/10 transition flex items-center gap-1.5 text-xs font-medium border accent-border">
+          <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="hidden sm:inline">Cloak & Settings</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN BROWSER VIEWPORT -->
+  <main id="viewport" class="flex-1 relative overflow-hidden ambient-bg"></main>
+
+  <!-- SETTINGS & CLOAKER MODAL -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-6 animate-view">
+      <div class="flex items-center justify-between border-b accent-border pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl accent-bg text-slate-950 flex items-center justify-center font-bold">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z"/></svg>
+          </div>
+          <div>
+            <h2 class="text-base font-bold">Fern Customization & Cloaker</h2>
+            <p class="text-xs opacity-70">Personalize your session appearance and stealth settings</p>
+          </div>
+        </div>
+        <button onclick="toggleSettingsModal(false)" class="p-2 rounded-xl hover:bg-white/10 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Section 1: Tab Cloaker -->
+      <div class="space-y-2.5">
+        <label class="text-xs font-semibold uppercase tracking-wider opacity-75">Tab Cloaker Presets (Updates Real Browser Tab)</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="cloak-presets">
+          <button onclick="applyCloak('default')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>🌿</span> Fern Web
+          </button>
+          <button onclick="applyCloak('drive')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>📁</span> Google Drive
+          </button>
+          <button onclick="applyCloak('docs')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>📄</span> Google Docs
+          </button>
+          <button onclick="applyCloak('canvas')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>🎓</span> Canvas LMS
+          </button>
+          <button onclick="applyCloak('clever')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>📘</span> Clever Portal
+          </button>
+          <button onclick="applyCloak('desmos')" class="cloak-btn p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-left text-xs font-medium flex items-center gap-2 transition">
+            <span>📈</span> Desmos
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 2: Theme Selector -->
+      <div class="space-y-2.5">
+        <label class="text-xs font-semibold uppercase tracking-wider opacity-75">Atmosphere Theme</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button onclick="setTheme('emerald')" class="p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-xs font-medium flex items-center gap-2 transition">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span> Emerald
+          </button>
+          <button onclick="setTheme('obsidian')" class="p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-xs font-medium flex items-center gap-2 transition">
+            <span class="w-3.5 h-3.5 rounded-full bg-purple-500"></span> Obsidian
+          </button>
+          <button onclick="setTheme('cyber')" class="p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-xs font-medium flex items-center gap-2 transition">
+            <span class="w-3.5 h-3.5 rounded-full bg-cyan-400"></span> Cyber
+          </button>
+          <button onclick="setTheme('amber')" class="p-2.5 rounded-2xl border accent-border hover:bg-white/10 text-xs font-medium flex items-center gap-2 transition">
+            <span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span> Amber
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 3: Panic Key -->
+      <div class="flex items-center justify-between p-3.5 rounded-2xl border accent-border" style="background: var(--bg-primary);">
+        <div>
+          <p class="text-xs font-semibold">Quick Panic Key</p>
+          <p class="text-[11px] opacity-65">Press key to instantly disguise screen as study notes</p>
+        </div>
+        <select id="panic-key-select" onchange="updatePanicKey(this.value)" class="px-3 py-1.5 rounded-xl text-xs font-mono border accent-border outline-none" style="background: var(--bg-secondary);">
+          <option value="Escape">Escape (Esc)</option>
+          <option value="`">Backtick (`)</option>
+          <option value="]">Right Bracket (])</option>
+          <option value="none">Disabled</option>
+        </select>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button onclick="toggleSettingsModal(false)" class="px-5 py-2 rounded-2xl accent-bg text-slate-950 font-semibold text-xs transition">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 glass-panel px-4 py-2.5 rounded-2xl text-xs font-medium shadow-xl"></div>
+
+  <script>
+    // ==========================================
+    // STATE MANAGEMENT
+    // ==========================================
+    let tabs = [];
+    let activeTabId = null;
+    let panicKey = 'Escape';
+    let savedNotes = localStorage.getItem('fern_scratchpad') || 'Welcome to Fern Scratchpad!\n\nType any quick thoughts, links, or code snippets here. Everything saves automatically to your browser.';
+
+    const SHORTCUTS = [
+      { name: 'Wikipedia', url: 'https://en.m.wikipedia.org', icon: '📚', desc: 'Free Encyclopedia' },
+      { name: 'Neal.fun', url: 'https://neal.fun', icon: '🎲', desc: 'Interactive Web Toys' },
+      { name: 'Desmos', url: 'https://www.desmos.com/calculator', icon: '📈', desc: 'Graphing Calculator' },
+      { name: 'Photopea', url: 'https://www.photopea.com', icon: '🎨', desc: 'Online Photo Editor' },
+      { name: 'Archive.org', url: 'https://archive.org', icon: '🏛️', desc: 'Digital Library' },
+      { name: 'Bing Search', url: 'https://www.bing.com', icon: '🔎', desc: 'Web Search Engine' }
+    ];
+
+    const NATIVE_APPS = [
+      { id: 'fern://notes', name: 'Fern Pad', icon: '📝', desc: 'Auto-saving private scratchpad' },
+      { id: 'fern://calc', name: 'Sci-Calc', icon: '🧮', desc: 'Instant expression calculator' },
+      { id: 'fern://arcade', name: 'Leaf Hopper', icon: '🕹️', desc: 'Built-in mini arcade game' }
+    ];
+
+    const CLOAK_PRESETS = {
+      default: {
+        label: 'Off',
+        title: 'Fern Web',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z'/></svg>"
+      },
+      drive: {
+        label: 'Drive',
+        title: 'My Drive - Google Drive',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%230F9D58' d='M7.7 3h8.6l6.7 11.5-4.3 7.5H5.3L1 14.5z'/><path fill='%23FFCD40' d='M16.3 3l6.7 11.5h-8.6L7.7 3z'/><path fill='%234285F4' d='M1 14.5h13.4l4.3 7.5H5.3z'/></svg>"
+      },
+      docs: {
+        label: 'Docs',
+        title: 'Untitled document - Google Docs',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='18' height='22' x='3' y='1' rx='2' fill='%234285F4'/><path stroke='white' stroke-width='2' d='M7 8h10M7 12h10M7 16h6'/></svg>"
+      },
+      canvas: {
+        label: 'Canvas',
+        title: 'Dashboard',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%23E13F2B'/><circle cx='12' cy='12' r='4' fill='white'/></svg>"
+      },
+      clever: {
+        label: 'Clever',
+        title: 'Clever | Portal',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='20' height='20' x='2' y='2' rx='5' fill='%234274F6'/><text x='12' y='17' font-size='14' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>C</text></svg>"
+      },
+      desmos: {
+        label: 'Desmos',
+        title: 'Desmos | Graphing Calculator',
+        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='20' height='20' x='2' y='2' rx='4' fill='%232F7230'/><path d='M5 16 Q12 4 19 16' stroke='white' stroke-width='2.5' fill='none'/></svg>"
+      }
+    };
+
+    // ==========================================
+    // TAB & NAVIGATION ENGINE
+    // ==========================================
+    function createTab(initialUrl = 'fern://newtab') {
+      const id = 'tab_' + Date.now() + Math.random().toString(36).slice(2, 6);
+      const tab = {
+        id,
+        title: 'New Tab',
+        icon: '🌿',
+        history: [initialUrl],
+        historyIndex: 0
+      };
+      tabs.push(tab);
+      switchTab(id);
+      if (initialUrl !== 'fern://newtab') {
+        navigateTo(initialUrl, false);
+      }
+    }
+
+    function closeTab(id, event) {
+      if (event) event.stopPropagation();
+      const idx = tabs.findIndex(t => t.id === id);
+      if (idx === -1) return;
+      tabs.splice(idx, 1);
+
+      if (tabs.length === 0) {
+        createTab();
+        return;
+      }
+      if (activeTabId === id) {
+        const nextTab = tabs[Math.max(0, idx - 1)];
+        switchTab(nextTab.id);
+      } else {
+        renderTabs();
+      }
+    }
+
+    function switchTab(id) {
+      activeTabId = id;
+      renderTabs();
+      renderViewport();
+      updateToolbar();
+    }
+
+    function getCurrentTab() {
+      return tabs.find(t => t.id === activeTabId);
+    }
+
+    function navigateTo(rawInput, pushHistory = true) {
+      const tab = getCurrentTab();
+      if (!tab) return;
+
+      let url = rawInput.trim();
+      if (!url) return;
+
+      // Determine URL format
+      if (url.startsWith('fern://')) {
+        // Internal route
+      } else if (/^https?:\/\//i.test(url)) {
+        // Valid URL
+      } else if (url.includes('.') && !url.includes(' ')) {
+        url = 'https://' + url;
+      } else {
+        // Search query via DuckDuckGo HTML/Lite or Bing
+        url = 'https://www.bing.com/search?q=' + encodeURIComponent(url);
+      }
+
+      if (pushHistory) {
+        tab.history = tab.history.slice(0, tab.historyIndex + 1);
+        tab.history.push(url);
+        tab.historyIndex = tab.history.length - 1;
+      }
+
+      updateTabMetadata(tab, url);
+      renderTabs();
+      updateToolbar();
+      renderViewport();
+    }
+
+    function updateTabMetadata(tab, url) {
+      if (url === 'fern://newtab') {
+        tab.title = 'New Tab';
+        tab.icon = '🌿';
+      } else if (url === 'fern://notes') {
+        tab.title = 'Fern Pad';
+        tab.icon = '📝';
+      } else if (url === 'fern://calc') {
+        tab.title = 'Sci-Calc';
+        tab.icon = '🧮';
+      } else if (url === 'fern://arcade') {
+        tab.title = 'Leaf Hopper';
+        tab.icon = '🕹️';
+      } else {
+        try {
+          const parsed = new URL(url);
+          tab.title = parsed.hostname.replace(/^www\./, '');
+          tab.icon = '🌐';
+        } catch {
+          tab.title = url;
+          tab.icon = '🌐';
+        }
+      }
+    }
+
+    function goBack() {
+      const tab = getCurrentTab();
+      if (tab && tab.historyIndex > 0) {
+        tab.historyIndex--;
+        const url = tab.history[tab.historyIndex];
+        updateTabMetadata(tab, url);
+        renderTabs();
+        updateToolbar();
+        renderViewport();
+      }
+    }
+
+    function goForward() {
+      const tab = getCurrentTab();
+      if (tab && tab.historyIndex < tab.history.length - 1) {
+        tab.historyIndex++;
+        const url = tab.history[tab.historyIndex];
+        updateTabMetadata(tab, url);
+        renderTabs();
+        updateToolbar();
+        renderViewport();
+      }
+    }
+
+    function reloadTab() {
+      renderViewport();
+      showToast('Tab refreshed');
+    }
+
+    function goHome() {
+      navigateTo('fern://newtab');
+    }
+
+    function handleOmniboxSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('omnibox-input');
+      navigateTo(input.value);
+    }
+
+    // ==========================================
+    // RENDERING UI
+    // ==========================================
+    function renderTabs() {
+      const container = document.getElementById('tabs-container');
+      container.innerHTML = tabs.map(tab => {
+        const isActive = tab.id === activeTabId;
+        return `
+          <div
+            onclick="switchTab('${tab.id}')"
+            class="tab-item ${isActive ? 'active' : 'opacity-70 hover:opacity-100 hover:bg-white/5'} group flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-transparent cursor-pointer min-w-[130px] max-w-[200px] shrink-0"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs shrink-0">${tab.icon}</span>
+              <span class="text-xs font-medium truncate">${escapeHtml(tab.title)}</span>
+            </div>
+            <button
+              onclick="closeTab('${tab.id}', event)"
+              class="w-4 h-4 rounded-full hover:bg-white/20 flex items-center justify-center text-[11px] opacity-60 group-hover:opacity-100 transition shrink-0"
+              title="Close Tab"
+            >✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateToolbar() {
+      const tab = getCurrentTab();
+      if (!tab) return;
+      const currentUrl = tab.history[tab.historyIndex];
+      const omnibox = document.getElementById('omnibox-input');
+      omnibox.value = currentUrl === 'fern://newtab' ? '' : currentUrl;
+
+      document.getElementById('btn-back').disabled = tab.historyIndex <= 0;
+      document.getElementById('btn-forward').disabled = tab.historyIndex >= tab.history.length - 1;
+    }
+
+    function renderViewport() {
+      const tab = getCurrentTab();
+      if (!tab) return;
+      const url = tab.history[tab.historyIndex];
+      const viewport = document.getElementById('viewport');
+
+      // Stop any running arcade loop if switching away
+      if (window.arcadeAnimId) {
+        cancelAnimationFrame(window.arcadeAnimId);
+        window.arcadeAnimId = null;
+      }
+
+      if (url === 'fern://newtab') {
+        viewport.innerHTML = renderNewTabHTML();
+      } else if (url === 'fern://notes') {
+        viewport.innerHTML = renderNotesAppHTML();
+      } else if (url === 'fern://calc') {
+        viewport.innerHTML = renderCalcAppHTML();
+      } else if (url === 'fern://arcade') {
+        viewport.innerHTML = renderArcadeAppHTML();
+        initArcadeGame();
+      } else {
+        viewport.innerHTML = renderWebFrameHTML(url);
+      }
+    }
+
+    // ==========================================
+    // VIEW TEMPLATES
+    // ==========================================
+    function renderNewTabHTML() {
+      return `
+        <div class="h-full w-full overflow-y-auto flex flex-col items-center justify-center p-6 animate-view">
+          <div class="w-full max-w-2xl flex flex-col items-center text-center space-y-7 my-auto">
+            
+            <!-- Botanical Logo -->
+            <div class="flex flex-col items-center gap-3">
+              <div class="w-16 h-16 rounded-3xl glass-panel accent-glow flex items-center justify-center">
+                <svg class="w-9 h-9 accent-text" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z"/>
+                </svg>
+              </div>
+              <div>
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Fern Web</h1>
+                <p class="text-xs sm:text-sm opacity-65 mt-1">Fast, cloaked, botanical browsing workspace</p>
+              </div>
+            </div>
+
+            <!-- Hero Search Bar -->
+            <form onsubmit="event.preventDefault(); navigateTo(this.querySelector('input').value);" class="w-full">
+              <div class="glass-panel rounded-2xl p-2 flex items-center gap-3 shadow-xl focus-within:ring-2 transition" style="--tw-ring-color: var(--accent);">
+                <svg class="w-5 h-5 accent-text ml-2 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search the web or enter URL..."
+                  class="w-full bg-transparent text-sm sm:text-base py-2 outline-none placeholder:opacity-50"
+                />
+                <button type="submit" class="px-5 py-2.5 rounded-xl accent-bg text-slate-950 font-semibold text-xs sm:text-sm transition shrink-0">
+                  Explore
+                </button>
+              </div>
+            </form>
+
+            <!-- Built-in Native Apps (100% Unblocked / Offline Ready) -->
+            <div class="w-full text-left space-y-2.5">
+              <div class="flex items-center justify-between px-1">
+                <span class="text-xs font-semibold uppercase tracking-wider opacity-70">Built-In Fern Tools (Native)</span>
+                <span class="text-[11px] accent-text font-medium">Instant • Zero Frame Blocks</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${NATIVE_APPS.map(app => `
+                  <button onclick="navigateTo('${app.id}')" class="glass-panel p-3.5 rounded-2xl hover:scale-[1.02] active:scale-[0.99] transition text-left flex items-center gap-3 group">
+                    <span class="text-2xl p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition">${app.icon}</span>
+                    <div>
+                      <div class="text-sm font-semibold">${app.name}</div>
+                      <div class="text-[11px] opacity-65">${app.desc}</div>
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Web Shortcuts -->
+            <div class="w-full text-left space-y-2.5">
+              <span class="text-xs font-semibold uppercase tracking-wider opacity-70 px-1">Quick Launch Sites</span>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                ${SHORTCUTS.map(site => `
+                  <button onclick="navigateTo('${site.url}')" class="glass-panel p-3.5 rounded-2xl hover:bg-white/10 transition text-left flex items-center gap-3">
+                    <span class="text-xl">${site.icon}</span>
+                    <div class="min-w-0">
+                      <div class="text-xs sm:text-sm font-semibold truncate">${site.name}</div>
+                      <div class="text-[11px] opacity-60 truncate">${site.desc}</div>
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWebFrameHTML(url) {
+      return `
+        <div class="h-full w-full flex flex-col animate-view">
+          <!-- Helpful Iframe Notice Banner -->
+          <div class="px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 border-b accent-border" style="background: var(--bg-secondary);">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full accent-bg animate-pulse"></span>
+              <span class="opacity-85">Viewing embedded frame: <strong class="font-mono">${escapeHtml(url)}</strong></span>
+              <span class="hidden md:inline opacity-60">— Note: Sites with strict X-Frame-Options headers may refuse to connect without a Node.js proxy backend.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 font-medium transition">
+                Open Externally ↗
+              </a>
+            </div>
+          </div>
+          <!-- Iframe Viewport -->
+          <div class="flex-1 w-full bg-white relative">
+            <iframe
+              src="${escapeHtml(url)}"
+              class="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // NATIVE BUILT-IN APPS
+    // ==========================================
+    function renderNotesAppHTML() {
+      return `
+        <div class="h-full w-full p-4 sm:p-8 flex flex-col items-center justify-center animate-view">
+          <div class="glass-panel w-full max-w-3xl h-full max-h-[600px] rounded-3xl p-5 flex flex-col gap-3 shadow-2xl">
+            <div class="flex items-center justify-between border-b accent-border pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📝</span>
+                <div>
+                  <h2 class="text-sm font-bold">Fern Pad — Local Scratchpad</h2>
+                  <p class="text-[11px] opacity-65">Stored locally in your browser session</p>
+                </div>
+              </div>
+              <button onclick="copyNotes()" class="px-3 py-1.5 rounded-xl accent-bg text-slate-950 font-semibold text-xs transition">
+                Copy Text
+              </button>
+            </div>
+            <textarea
+              id="fern-notes-area"
+              oninput="saveNotes(this.value)"
+              class="flex-1 w-full bg-transparent resize-none outline-none text-sm leading-relaxed font-mono p-2"
+              placeholder="Write your notes here..."
+            >${escapeHtml(savedNotes)}</textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    function saveNotes(val) {
+      savedNotes = val;
+      localStorage.setItem('fern_scratchpad', val);
+    }
+
+    function copyNotes() {
+      const area = document.getElementById('fern-notes-area');
+      if (!area) return;
+      area.select();
+      document.execCommand('copy');
+      showToast('Notes copied to clipboard!');
+    }
+
+    function renderCalcAppHTML() {
+      const buttons = ['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'];
+      return `
+        <div class="h-full w-full p-6 flex items-center justify-center animate-view">
+          <div class="glass-panel w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider opacity-70">🧮 Fern Sci-Calc</span>
+              <span class="text-[10px] accent-text font-mono">READY</span>
+            </div>
+            <input id="calc-display" type="text" readonly value="0" class="w-full text-right font-mono text-2xl font-bold p-3.5 rounded-2xl border accent-border outline-none" style="background: var(--bg-primary);" />
+            <div class="grid grid-cols-4 gap-2">
+              ${buttons.map(btn => `
+                <button
+                  onclick="pressCalc('${btn}')"
+                  class="p-3.5 rounded-2xl font-mono font-bold text-sm transition ${btn === '=' ? 'accent-bg text-slate-950' : 'bg-white/5 hover:bg-white/15'}"
+                >${btn}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    let calcExpr = '';
+    function pressCalc(key) {
+      const disp = document.getElementById('calc-display');
+      if (!disp) return;
+      if (key === 'C') {
+        calcExpr = '';
+        disp.value = '0';
+      } else if (key === '=') {
+        try {
+          if (/^[0-9+\-*/.() ]+$/.test(calcExpr) && calcExpr.length > 0) {
+            const res = Function('"use strict";return (' + calcExpr + ')')();
+            disp.value = Number.isFinite(res) ? String(res) : 'Error';
+            calcExpr = disp.value === 'Error' ? '' : disp.value;
+          }
+        } catch {
+          disp.value = 'Error';
+          calcExpr = '';
+        }
+      } else {
+        calcExpr += key;
+        disp.value = calcExpr;
+      }
+    }
+
+    function renderArcadeAppHTML() {
+      return `
+        <div class="h-full w-full p-4 flex flex-col items-center justify-center gap-3 animate-view">
+          <div class="glass-panel rounded-3xl p-4 flex flex-col items-center gap-3 shadow-2xl max-w-md w-full">
+            <div class="w-full flex items-center justify-between px-1">
+              <span class="text-xs font-bold">🕹️ Leaf Hopper Mini-Game</span>
+              <span class="text-xs font-mono accent-text">Score: <strong id="arcade-score">0</strong></span>
+            </div>
+            <div class="w-full h-56 rounded-2xl overflow-hidden border accent-border relative" style="background: var(--bg-primary);">
+              <canvas id="arcade-canvas" class="w-full h-full block"></canvas>
+            </div>
+            <p class="text-[11px] opacity-70">Press <strong>Space</strong> or <strong>Tap Canvas</strong> to jump over forest stones!</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function initArcadeGame() {
+      const canvas = document.getElementById('arcade-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      let player = { x: 45, y: canvas.height - 34, size: 22, vy: 0, grounded: true };
+      let obstacle = { x: canvas.width, y: canvas.height - 28, w: 18, h: 24, speed: 4.5 };
+      let score = 0;
+      let gameOver = false;
+
+      function jump() {
+        if (gameOver) {
+          obstacle.x = canvas.width;
+          score = 0;
+          obstacle.speed = 4.5;
+          gameOver = false;
+          document.getElementById('arcade-score').textContent = '0';
+          return;
+        }
+        if (player.grounded) {
+          player.vy = -10.5;
+          player.grounded = false;
+        }
+      }
+
+      canvas.onclick = jump;
+      window.onkeydown = (e) => {
+        if (e.code === 'Space' && document.getElementById('arcade-canvas')) {
+          e.preventDefault();
+          jump();
+        }
+      };
+
+      function loop() {
+        if (!document.getElementById('arcade-canvas')) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Ground
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.fillRect(0, canvas.height - 6, canvas.width, 6);
+
+        if (!gameOver) {
+          player.vy += 0.55;
+          player.y += player.vy;
+          if (player.y >= canvas.height - 28) {
+            player.y = canvas.height - 28;
+            player.vy = 0;
+            player.grounded = true;
+          }
+
+          obstacle.x -= obstacle.speed;
+          if (obstacle.x + obstacle.w < 0) {
+            obstacle.x = canvas.width + Math.random() * 80;
+            score++;
+            obstacle.speed = Math.min(9, 4.5 + score * 0.2);
+            const scoreEl = document.getElementById('arcade-score');
+            if (scoreEl) scoreEl.textContent = score;
+          }
+
+          // Collision check
+          if (
+            player.x < obstacle.x + obstacle.w &&
+            player.x + player.size > obstacle.x &&
+            player.y < obstacle.y + obstacle.h &&
+            player.y + player.size > obstacle.y
+          ) {
+            gameOver = true;
+          }
+        }
+
+        // Draw Player (Fern Orb)
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(player.x + player.size / 2, player.y + player.size / 2, player.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Obstacle
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+
+        if (gameOver) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 14px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Game Over! Tap or Press Space to Restart', canvas.width / 2, canvas.height / 2);
+        }
+
+        window.arcadeAnimId = requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    // ==========================================
+    // CLOAKER, THEMES & PANIC MODE
+    // ==========================================
+    function applyCloak(presetKey) {
+      const preset = CLOAK_PRESETS[presetKey];
+      if (!preset) return;
+      document.title = preset.title;
+      document.getElementById('dynamic-favicon').href = preset.icon;
+      document.getElementById('cloak-status-text').textContent = preset.label;
+      showToast(`Tab cloaked as "${preset.title}"`);
+    }
+
+    function setTheme(themeName) {
+      if (themeName === 'emerald') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', themeName);
+      }
+      showToast(`Theme switched to ${themeName.charAt(0).toUpperCase() + themeName.slice(1)}`);
+    }
+
+    function toggleSettingsModal(show) {
+      const modal = document.getElementById('settings-modal');
+      modal.classList.toggle('hidden', !show);
+    }
+
+    function updatePanicKey(val) {
+      panicKey = val;
+      showToast(val === 'none' ? 'Panic key disabled' : `Panic key set to "${val}"`);
+    }
+
+    function togglePanicMode(active) {
+      const screen = document.getElementById('panic-screen');
+      if (active) {
+        screen.classList.remove('hidden');
+        document.title = 'AP Biology - Cellular Respiration Notes';
+      } else {
+        screen.classList.add('hidden');
+        const currentLabel = document.getElementById('cloak-status-text').textContent.toLowerCase();
+        const key = Object.keys(CLOAK_PRESETS).find(k => CLOAK_PRESETS[k].label.toLowerCase() === currentLabel) || 'default';
+        document.title = CLOAK_PRESETS[key].title;
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (panicKey !== 'none' && e.key === panicKey) {
+        const panicScreen = document.getElementById('panic-screen');
+        const isCurrentlyActive = !panicScreen.classList.contains('hidden');
+        togglePanicMode(!isCurrentlyActive);
+      }
+    });
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let toastTimeout;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2400);
+    }
+
+    // Boot Browser
+    window.onload = () => {
+      createTab('fern://newtab');
+    };
+  </script>
+</body>
+</html>
